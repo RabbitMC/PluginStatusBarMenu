@@ -7,12 +7,12 @@
 //
 
 #import "AppDelegate.h"
+#import "PluginProtocol.h"
 
 @interface AppDelegate ()
 
 @property NSMenu *statusMenu;
 @property NSStatusItem *statusItem;
-@property NSMutableArray *plugins;
 
 @property NSWindowController *mainWindowController;
 
@@ -31,6 +31,22 @@
     
     [self.statusMenu addItem:aboutMenuItem];
     [self.statusMenu addItem:[NSMenuItem separatorItem]];
+    
+    // Load Plugin(s)
+    NSArray *pluginDir = [[ NSFileManager defaultManager ] contentsOfDirectoryAtPath:[@"~/Library/Application Support/MenuBarHost/Plugins" stringByExpandingTildeInPath] error:nil];
+    [pluginDir enumerateObjectsUsingBlock:^(NSString*  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *fullPath = [[@"~/Library/Application Support/MenuBarHost/Plugins" stringByExpandingTildeInPath] stringByAppendingPathComponent:obj];
+        NSBundle *pluginBundle = [NSBundle bundleWithPath:fullPath];
+        Class principalClass = [pluginBundle principalClass];
+        
+        if ([principalClass conformsToProtocol:@protocol(PluginProtocol)]) {
+            [pluginBundle load];
+            NSObject<PluginProtocol> *plugin = [[principalClass alloc] init];
+            [self.statusMenu addItem:[plugin menuItem]];
+        } else {
+            NSLog(@"Plug In does not conform to PluginProtocol: %@", (NSString *)obj);
+        }
+    }];
 }
 
 - (void)setupMenu {
