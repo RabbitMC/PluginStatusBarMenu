@@ -34,15 +34,19 @@
     
     // Load Plugin(s)
     NSArray *pluginDir = [[ NSFileManager defaultManager ] contentsOfDirectoryAtPath:[@"~/Library/Application Support/MenuBarHost/Plugins" stringByExpandingTildeInPath] error:nil];
-    [pluginDir enumerateObjectsUsingBlock:^(NSString*  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    
+    [pluginDir enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
         NSString *fullPath = [[@"~/Library/Application Support/MenuBarHost/Plugins" stringByExpandingTildeInPath] stringByAppendingPathComponent:obj];
+        
         NSBundle *pluginBundle = [NSBundle bundleWithPath:fullPath];
         Class principalClass = [pluginBundle principalClass];
         
         if ([principalClass conformsToProtocol:@protocol(PluginProtocol)]) {
             [pluginBundle load];
             NSObject<PluginProtocol> *plugin = [[principalClass alloc] init];
-            [self.statusMenu addItem:[plugin menuItem]];
+            NSMenuItem *pluginItem =  [plugin menuItem];
+            [self.statusMenu addItem:pluginItem];
         } else {
             NSLog(@"Plug In does not conform to PluginProtocol: %@", (NSString *)obj);
         }
@@ -52,6 +56,7 @@
 - (void)setupMenu {
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     self.statusMenu = [[NSMenu alloc] init];
+    self.statusMenu.autoenablesItems = NO;
 }
 
 - (void)setupMenuIcon {

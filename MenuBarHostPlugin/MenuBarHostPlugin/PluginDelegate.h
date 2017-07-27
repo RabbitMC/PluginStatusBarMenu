@@ -11,6 +11,4 @@
 
 @interface PluginDelegate : NSObject <PluginProtocol>
 
-- (IBAction)openPluginWindow:(id)sender;
-
 @end
